@@ -1,13 +1,16 @@
-from model import Story2MusicTransformer
-import torch
 import argparse
+import mido
+from pathlib import Path
+
+import torch
+from mido import MidiFile, MidiTrack, Message
 from miditok import REMI, TokenizerConfig
 from tqdm import tqdm
-from pathlib import Path
-from model import Story2MusicTransformer
-from dataset import StoryMidiDataset
 from transformers import BertTokenizer, AutoTokenizer
 from torch.utils.data import DataLoader, Dataset
+
+from model import Story2MusicTransformer
+from dataset import StoryMidiDataset
 
 def ensure_output_dir():
     """
@@ -15,7 +18,7 @@ def ensure_output_dir():
     """
     output_dir = Path("generated_midi")
     if not output_dir.exists():
-        output_dir.mkdir(parents=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
         print("Created generated_midi directory")
     return output_dir
 
@@ -25,6 +28,35 @@ def read_story_from_file(file_path):
     """
     with open(file_path, 'r', encoding='utf-8') as f:
         return f.read().strip()
+
+
+def save_midi_from_list(filename, note_list, tempo=120):
+    """
+    Saves a MIDI file from a list of notes.
+
+    Args:
+        filename (str): The name of the MIDI file to save.
+        note_list (list): A list of tuples, where each tuple represents a note 
+                         in the format (note_number, duration, velocity).
+        tempo (int): Tempo in BPM (beats per minute).
+    """
+    midi_file = MidiFile()
+    track = MidiTrack()
+    midi_file.tracks.append(track)
+
+    # Tempo meta message (required for some software)
+    ticks_per_beat = midi_file.ticks_per_beat
+    # track.append(Message('meta', type='set_tempo', tempo=mido.bpm2tempo(tempo), time=0))
+
+    current_time = 0
+    for note_number, duration, velocity in note_list:
+        # Note on message
+        track.append(Message('note_on', note=note_number, velocity=velocity, time=current_time))
+        current_time = 0
+        # Note off message
+        track.append(Message('note_off', note=note_number, velocity=velocity, time=duration))
+    
+    midi_file.save(filename)
 
 def main():
     # Set up argument parser
@@ -44,7 +76,6 @@ def main():
     # Get story text
     if args.story:
         story = args.story
-        print(f"Using direct story input: {story}")
     else:
         story = read_story_from_file(args.story_file)
 
@@ -76,12 +107,11 @@ def main():
     generated = model.generate(input_ids, attention_mask, 4, 3, max_len=50)
     
     # Convert tokens to MIDI file
-    midi_tokens = generated.squeeze().tolist()
-    midi_obj = midi_tokenizer.decode(midi_tokens)
+    midi_obj = midi_tokenizer.decode(generated)
     
     # Save MIDI file
     output_path = output_dir / f"{args.output_name}.mid"
-    midi_obj.dump(output_path)
+    save_midi_from_list(output_path, midi_obj)
     print(f"Generated MIDI file saved to: {output_path}")
 
 if __name__ == "__main__":
