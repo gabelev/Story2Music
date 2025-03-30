@@ -1,15 +1,17 @@
+
+import argparse
 import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
-import argparse
-from miditok import REMI, TokenizerConfig
-from tqdm import tqdm
-from pathlib import Path
-from model import Story2MusicTransformer
+
 from dataset import StoryMidiDataset
+from miditok import REMI, TokenizerConfig
+from model import Story2MusicTransformer
+from pathlib import Path
+from torch.utils.data import DataLoader
+from tqdm import tqdm
 from transformers import BertTokenizer
-from torch.utils.data import DataLoader, Dataset
 
 def ensure_saved_models_dir():
     """
