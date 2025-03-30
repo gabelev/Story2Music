@@ -38,15 +38,15 @@ To generate MIDI music from a story, you can use generate.py in two ways:
 
 1. Using direct story text:
 ```
-python generate.py --story "Your story text here" --output_name "my_song"
+python generate.py --story "Your story text here" --output_name "my_song" --model_path "path/to/your/model.pth"
 ```
 
 2. Using a text file containing the story:
 ```
-python generate.py --story_file "path/to/your/story.txt" --output_name "my_song"
+python generate.py --story_file "path/to/your/story.txt" --output_name "my_song" --model_path "path/to/your/model.pth"
 ```
 
-The generated MIDI file will be saved in the `generated_midi` directory with the specified output name (defaults to "generated_song.mid" if no name is provided).
+The `--model_path` argument is optional and defaults to "saved_models/custom_transformer.pth". The generated MIDI file will be saved in the `generated_midi` directory with the specified output name (defaults to "generated_song.mid" if no name is provided).
 
 You can then play the generated MIDI file using play_midi.py:
 ```

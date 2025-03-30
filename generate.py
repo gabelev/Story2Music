@@ -32,6 +32,7 @@ def main():
     parser.add_argument('--story', type=str, help='Direct story text input')
     parser.add_argument('--story_file', type=str, help='Path to text file containing the story')
     parser.add_argument('--output_name', type=str, default='generated_song', help='Name for the output MIDI file (without extension)')
+    parser.add_argument('--model_path', type=str, default='saved_models/custom_transformer.pth', help='Path to the saved model weights')
     args = parser.parse_args()
 
     # Validate input arguments
@@ -43,6 +44,7 @@ def main():
     # Get story text
     if args.story:
         story = args.story
+        print(f"Using direct story input: {story}")
     else:
         story = read_story_from_file(args.story_file)
 
@@ -51,7 +53,7 @@ def main():
     
     # Load model
     model = Story2MusicTransformer("bert-base-uncased", midi_vocab_size=30000)
-    model.load_state_dict(torch.load("saved_models/custom_transformer.pth"))
+    model.load_state_dict(torch.load(args.model_path))
     model.eval()
 
     tokenizer_params = {
